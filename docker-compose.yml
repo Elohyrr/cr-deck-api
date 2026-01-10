@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: royal-api-postgres
+    environment:
+      POSTGRES_DB: royale_api
+      POSTGRES_USER: royale
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U royale"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - royal-api-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: royal-api-server
+    environment:
+      SUPERCELL_API_KEY: ${SUPERCELL_API_KEY}
+      API_TOKEN: ${API_TOKEN}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: royale_api
+      POSTGRES_USER: royale
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TOP_PLAYERS_LIMIT: ${TOP_PLAYERS_LIMIT:-1000}
+      API_PORT: 8080
+      RETENTION_DAYS: ${RETENTION_DAYS:-7}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["-command", "serve"]
+    restart: unless-stopped
+    networks:
+      - royal-api-network
+
+  collector:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: royal-api-collector
+    environment:
+      SUPERCELL_API_KEY: ${SUPERCELL_API_KEY}
+      API_TOKEN: ${API_TOKEN}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: royale_api
+      POSTGRES_USER: royale
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TOP_PLAYERS_LIMIT: ${TOP_PLAYERS_LIMIT:-1000}
+      API_PORT: 8080
+      RETENTION_DAYS: ${RETENTION_DAYS:-7}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["-command", "collect-loop"]
+    restart: unless-stopped
+    networks:
+      - royal-api-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  royal-api-network:
+    driver: bridge
