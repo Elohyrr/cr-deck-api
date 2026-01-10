@@ -1,0 +1,72 @@
+package collector
+
+import (
+	"strings"
+	"time"
+
+	"github.com/leopoldhub/royal-api-personal/internal/models"
+	"github.com/leopoldhub/royal-api-personal/pkg/supercell"
+	"github.com/leopoldhub/royal-api-personal/pkg/utils"
+)
+
+// FilterPvPLadder filters battles to keep only PvP Ladder matches
+func FilterPvPLadder(battles []supercell.BattleRaw) []supercell.BattleRaw {
+	var filtered []supercell.BattleRaw
+	for _, battle := range battles {
+		if battle.Type == "PvP" && strings.Contains(battle.GameMode.Name, "Ladder") {
+			filtered = append(filtered, battle)
+		}
+	}
+	return filtered
+}
+
+// ParseBattle converts a raw battle from API to internal Battle model
+func ParseBattle(raw supercell.BattleRaw) (*models.Battle, error) {
+	if len(raw.Team) == 0 || len(raw.Opponent) == 0 {
+		return nil, nil
+	}
+
+	player := raw.Team[0]
+	opponent := raw.Opponent[0]
+
+	if len(player.Cards) != 8 {
+		return nil, nil
+	}
+
+	battleTime, err := ParseBattleTime(raw.BattleTime)
+	if err != nil {
+		return nil, err
+	}
+
+	var deckCards [8]models.Card
+	for i, card := range player.Cards {
+		deckCards[i] = models.Card{
+			ID:    card.ID,
+			Name:  card.Name,
+			Level: card.Level,
+		}
+	}
+
+	signature := utils.CalculateDeckSignature(deckCards)
+	isVictory := player.Crowns > opponent.Crowns
+
+	battle := &models.Battle{
+		BattleTime:     battleTime,
+		PlayerTag:      player.Tag,
+		OpponentTag:    opponent.Tag,
+		GameMode:       raw.GameMode.Name,
+		PlayerCrowns:   player.Crowns,
+		OpponentCrowns: opponent.Crowns,
+		DeckSignature:  signature,
+		DeckCards:      deckCards,
+		IsVictory:      isVictory,
+	}
+
+	return battle, nil
+}
+
+// ParseBattleTime parses Supercell API timestamp format (20240110T201530.000Z)
+func ParseBattleTime(timestamp string) (time.Time, error) {
+	layout := "20060102T150405.000Z"
+	return time.Parse(layout, timestamp)
+}
