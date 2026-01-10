@@ -310,7 +310,7 @@ Contributions bienvenues ! Créer une issue ou une PR.
 
 ## 📧 Contact
 
-[@leopoldhub](https://github.com/leopoldhub)
+[@Elohyrr](https://github.com/Elohyrr)
 
 ---
 
