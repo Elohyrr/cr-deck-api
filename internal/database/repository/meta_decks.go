@@ -46,7 +46,7 @@ func (r *PostgresMetaRepo) Recalculate(ctx context.Context) error {
 		)
 		SELECT 
 			deck_signature,
-			deck_cards,
+			(array_agg(deck_cards ORDER BY battle_time DESC))[1] as cards,
 			COUNT(*) as total_games,
 			SUM(CASE WHEN is_victory THEN 1 ELSE 0 END) as wins,
 			SUM(CASE WHEN NOT is_victory THEN 1 ELSE 0 END) as losses,
@@ -54,7 +54,7 @@ func (r *PostgresMetaRepo) Recalculate(ctx context.Context) error {
 			MIN(battle_time) as first_seen,
 			MAX(battle_time) as last_seen
 		FROM battles
-		GROUP BY deck_signature, deck_cards
+		GROUP BY deck_signature
 	`
 
 	if _, err := tx.ExecContext(ctx, query); err != nil {
