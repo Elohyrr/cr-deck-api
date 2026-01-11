@@ -18,6 +18,10 @@ func TestFilterPvPLadder(t *testing.T) {
 			GameMode: supercell.GameMode{Name: "Ladder_GoldRush"},
 		},
 		{
+			Type:     "pathOfLegend",
+			GameMode: supercell.GameMode{Name: "Ranked1v1_NewArena2"},
+		},
+		{
 			Type:     "riverRacePvP",
 			GameMode: supercell.GameMode{Name: "ClanWar"},
 		},
@@ -33,17 +37,27 @@ func TestFilterPvPLadder(t *testing.T) {
 
 	filtered := FilterPvPLadder(battles)
 
-	if len(filtered) != 2 {
-		t.Errorf("expected 2 PvP Ladder battles, got %d", len(filtered))
+	if len(filtered) != 3 {
+		t.Errorf("expected 3 competitive battles (2 Ladder + 1 Ranked), got %d", len(filtered))
 	}
 
+	// Check we got the right types
+	hasLadder := false
+	hasRanked := false
 	for _, battle := range filtered {
-		if battle.Type != "PvP" {
-			t.Errorf("expected type PvP, got %s", battle.Type)
+		if battle.Type == "PvP" && contains(battle.GameMode.Name, "Ladder") {
+			hasLadder = true
 		}
-		if !contains(battle.GameMode.Name, "Ladder") {
-			t.Errorf("expected gameMode to contain Ladder, got %s", battle.GameMode.Name)
+		if battle.Type == "pathOfLegend" && contains(battle.GameMode.Name, "Ranked") {
+			hasRanked = true
 		}
+	}
+
+	if !hasLadder {
+		t.Error("expected at least one Ladder battle in filtered results")
+	}
+	if !hasRanked {
+		t.Error("expected at least one Ranked (Path of Legends) battle in filtered results")
 	}
 }
 

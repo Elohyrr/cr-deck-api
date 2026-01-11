@@ -10,11 +10,19 @@ import (
 	"github.com/leopoldhub/royal-api-personal/pkg/utils"
 )
 
-// FilterPvPLadder filters battles to keep only PvP Ladder matches
+// FilterPvPLadder filters battles to keep only competitive 1v1 matches
+// Includes: PvP Ladder, Path of Legends (Ranked)
+// Excludes: Clan Wars, Challenges, 2v2, Party modes
 func FilterPvPLadder(battles []supercell.BattleRaw) []supercell.BattleRaw {
 	var filtered []supercell.BattleRaw
 	for _, battle := range battles {
-		if battle.Type == "PvP" && strings.Contains(battle.GameMode.Name, "Ladder") {
+		// Accept classic Ladder (type: PvP + Ladder in name)
+		isClassicLadder := battle.Type == "PvP" && strings.Contains(battle.GameMode.Name, "Ladder")
+
+		// Accept Path of Legends / Ranked (type: pathOfLegend + Ranked in name)
+		isRanked := battle.Type == "pathOfLegend" && strings.Contains(battle.GameMode.Name, "Ranked")
+
+		if isClassicLadder || isRanked {
 			filtered = append(filtered, battle)
 		}
 	}
