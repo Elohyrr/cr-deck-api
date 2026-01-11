@@ -15,6 +15,7 @@ var TopPlayerTags = []string{
 	"#9CQ2U8QJ",  // Jonas (Top EU)
 	"#YV2GJC",    // CWA (OJ - créateur de contenu)
 	"#8PPRR",     // Morten (Top DK)
+	"#C29U8Y9QV", // TTOP 1
 }
 
 // GetTopPlayerTags retourne la liste complète des top players à tracker.

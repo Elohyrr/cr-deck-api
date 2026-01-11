@@ -52,18 +52,18 @@ func (c *HTTPClient) GetTopPlayers(ctx context.Context, limit int) ([]Player, er
 
 // GetBattlelog retrieves recent battles for a player
 func (c *HTTPClient) GetBattlelog(ctx context.Context, tag string) ([]BattleRaw, error) {
+	// Note: url.PathEscape encode correctement # en %23
 	encodedTag := url.PathEscape(tag)
 	endpoint := fmt.Sprintf("/players/%s/battlelog", encodedTag)
 
-	var response struct {
-		Items []BattleRaw `json:"items"`
-	}
+	// L'API retourne un array direct, pas un objet {"items": [...]}
+	var battles []BattleRaw
 
-	if err := c.doRequest(ctx, endpoint, &response); err != nil {
+	if err := c.doRequest(ctx, endpoint, &battles); err != nil {
 		return nil, err
 	}
 
-	return response.Items, nil
+	return battles, nil
 }
 
 // doRequest performs HTTP request with retry logic

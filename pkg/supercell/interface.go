@@ -49,7 +49,7 @@ type TeamMember struct {
 
 // CardRaw represents raw card data from API
 type CardRaw struct {
-	ID       string   `json:"id"`
+	ID       int      `json:"id"` // API retourne un integer (ex: 26000000)
 	Name     string   `json:"name"`
 	Level    int      `json:"level"`
 	MaxLevel int      `json:"maxLevel"`

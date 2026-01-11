@@ -1,6 +1,7 @@
 package collector
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -41,7 +42,7 @@ func ParseBattle(raw supercell.BattleRaw) (*models.Battle, error) {
 	var deckCards [8]models.Card
 	for i, card := range player.Cards {
 		deckCards[i] = models.Card{
-			ID:    card.ID,
+			ID:    fmt.Sprintf("%d", card.ID), // Convertir int → string
 			Name:  card.Name,
 			Level: card.Level,
 		}

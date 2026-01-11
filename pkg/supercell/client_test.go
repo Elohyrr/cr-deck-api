@@ -66,19 +66,21 @@ func TestHTTPClient_GetBattlelog(t *testing.T) {
 			t.Errorf("unexpected path: %s", r.URL.Path)
 		}
 
+		// Note: Le serveur HTTP de test reçoit le path décodé (/players/#2PP)
+		// url.PathEscape encode bien # en %23 côté client avant l'envoi
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
-			"items": [
-				{
-					"type": "PvP",
-					"battleTime": "20240110T201530.000Z",
-					"gameMode": {"id": 72000006, "name": "Ladder"},
-					"team": [{"tag": "#2PP", "crowns": 3, "cards": []}],
-					"opponent": [{"tag": "#ABC", "crowns": 1, "cards": []}]
-				}
-			]
-		}`))
+		// L'API Supercell retourne un array direct, pas {"items": [...]}
+		w.Write([]byte(`[
+			{
+				"type": "PvP",
+				"battleTime": "20240110T201530.000Z",
+				"gameMode": {"id": 72000006, "name": "Ladder"},
+				"team": [{"tag": "#2PP", "crowns": 3, "cards": []}],
+				"opponent": [{"tag": "#ABC", "crowns": 1, "cards": []}]
+			}
+		]`))
 	}))
 	defer server.Close()
 
