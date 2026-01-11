@@ -6,7 +6,13 @@ import (
 
 // Client defines operations to fetch data from Supercell API
 type Client interface {
+	// GetTopPlayers retrieves top N players from global rankings
+	// NOTE 2026-01-11: Endpoint /locations/*/rankings/players retourne des listes vides
+	// Bug côté Supercell API. Alternative: utiliser liste statique (voir collector/top_players.go)
 	GetTopPlayers(ctx context.Context, limit int) ([]Player, error)
+
+	// GetBattlelog retrieves last 25 battles for a player
+	// ✅ Validé fonctionnel - utilisé pour la collecte principale
 	GetBattlelog(ctx context.Context, tag string) ([]BattleRaw, error)
 }
 

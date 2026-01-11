@@ -51,14 +51,24 @@ func (c *CollectorService) Collect(ctx context.Context) (*CollectResult, error) 
 		Errors:    make([]error, 0),
 	}
 
-	c.logger.Printf("Starting collection for top %d players", c.limit)
+	// NOTE: Utiliser liste statique car l'endpoint rankings API retourne des listes vides
+	// Bug côté Supercell API identifié le 2026-01-11
+	playerTags := GetTopPlayerTags()
+	playerCount := len(playerTags)
 
-	players, err := c.supercellClient.GetTopPlayers(ctx, c.limit)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch top players: %w", err)
+	c.logger.Printf("Starting collection for %d tracked top players", playerCount)
+	c.logger.Println("Note: Using static player list (rankings API unavailable)")
+
+	// Convertir []string en []supercell.Player pour compatibilité avec le reste du code
+	players := make([]supercell.Player, playerCount)
+	for i, tag := range playerTags {
+		players[i] = supercell.Player{
+			Tag: tag,
+			// Les autres champs ne sont pas utilisés par fetchBattlelogsParallel
+		}
 	}
 
-	c.logger.Printf("Fetched %d top players", len(players))
+	c.logger.Printf("Loaded %d player tags from static list", len(players))
 
 	battles := c.fetchBattlelogsParallel(ctx, players, result)
 	c.logger.Printf("Collected %d raw battles from %d players", len(battles), result.PlayersProcessed)

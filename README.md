@@ -266,10 +266,30 @@ go test -cover ./...       # Coverage
 ./royal-api serve
 ```
 
+## ⚠️ Limitations Connues
+
+### Rankings API non disponible
+
+L'endpoint officiel `/locations/{id}/rankings/players` de l'API Supercell retourne systématiquement des listes vides (bug côté Supercell, janvier 2026). 
+
+**Solution implémentée**: Liste statique de top player tags dans `internal/collector/top_players.go`.
+
+**Comment mettre à jour la liste** (recommandé 1x/mois):
+
+1. Consulter le leaderboard RoyaleAPI: https://royaleapi.com/players/leaderboard
+2. Copier les tags des top 100-200 joueurs
+3. Éditer `internal/collector/top_players.go`
+4. Ajouter les tags au format `"#TAG123",`
+5. Rebuild: `docker-compose down && docker-compose up -d --build`
+
+**Alternative**: Utiliser l'API RoyaleAPI (payante) pour fetch automatique des rankings.
+
+---
+
 ## 📊 Fonctionnement
 
 1. **Collecte quotidienne** (automated):
-   - Fetch top 1000 joueurs via `/locations/global/rankings/players`
+   - Utilise liste statique de top players (~10-200 tags)
    - Pour chaque joueur: fetch 25 derniers combats via `/players/{tag}/battlelog`
    - Filtre: combats PvP Ladder uniquement
    - Insertion en DB avec batch insert
